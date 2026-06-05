@@ -1869,4 +1869,26 @@ footer {
         flex-direction: column;
         gap: 8px;
     }
+}.smartlink-btn {
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.smartlink-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4);
+}
+
+@media (max-width: 480px) {
+    .smartlink-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
 }
