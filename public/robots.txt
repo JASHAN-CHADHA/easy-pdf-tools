@@ -1,29 +1,23 @@
-# robots.txt for PDFForge Pro
+# robots.txt for EasyPDF Tools
 User-agent: *
 Allow: /
 Allow: /tools.html
-Allow: /merge-pdf.html
-Allow: /compress-pdf.html
-Allow: /image-to-pdf.html
-Allow: /word-to-pdf.html
-Allow: /pdf-to-word.html
-Allow: /split-pdf.html
-Allow: /watermark.html
+Allow: /about.html
 Allow: /blog.html
+Allow: /contact.html
 Allow: /privacy.html
 Allow: /terms.html
 Allow: /gdpr.html
 
+# Disallow - Don't index these folders
 Disallow: /uploads/
 Disallow: /output/
-Disallow: /css/
-Disallow: /js/
 
-# Crawl delay to prevent server overload
+# Crawl delay (be nice to the server)
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: http://localhost:3000/sitemap.xml
+Sitemap: https://easy-pdf-tools7.onrender.com/sitemap.xml
 
 # Host
-Host: http://localhost:3000
+Host: https://easy-pdf-tools7.onrender.com
