@@ -1,23 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>EasyPDF Tools - Free Image to PDF & PDF Tools Online</title>
-    <meta name="description" content="Free online PDF tools. Convert Image to PDF (JPG to PDF). Merge PDF, Compress PDF, Word to PDF, and more. No signup required. 100% free.">
+    <meta name="description"
+        content="Free online PDF tools. Convert Image to PDF (JPG to PDF). Merge PDF, Compress PDF, Word to PDF, and more. No signup required. 100% free.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
-    
+
     <!-- Adsterra Popunder Script -->
     <script src="https://pl29645824.effectivecpmnetwork.com/17/4a/8d/174a8d28615752dc6bfe10f02ca5692c.js"></script>
-    
+
+
     <style>
-        .hero-stats { display: none; }
-        .sidebar { display: none; }
-        .main-layout { grid-template-columns: 1fr; }
-        
+        .hero-stats {
+            display: none;
+        }
+
+        .sidebar {
+            display: none;
+        }
+
+        .main-layout {
+            grid-template-columns: 1fr;
+        }
+
         .quick-tools {
             display: flex;
             flex-wrap: wrap;
@@ -25,7 +38,7 @@
             justify-content: center;
             margin: 1.5rem 0;
         }
-        
+
         .quick-tool-btn {
             background: var(--bg3);
             border: 1px solid var(--border2);
@@ -36,13 +49,13 @@
             transition: var(--transition);
             font-size: 0.85rem;
         }
-        
+
         .quick-tool-btn:hover {
             background: var(--accent);
             border-color: var(--accent);
             transform: translateY(-2px);
         }
-        
+
         .step-guide {
             display: flex;
             flex-wrap: wrap;
@@ -50,13 +63,13 @@
             gap: 2rem;
             margin: 2rem 0;
         }
-        
+
         .step {
             text-align: center;
             flex: 1;
             min-width: 150px;
         }
-        
+
         .step-number {
             width: 40px;
             height: 40px;
@@ -68,7 +81,7 @@
             margin: 0 auto 0.8rem;
             font-weight: bold;
         }
-        
+
         /* Ad Container - Centered */
         .ad-section {
             width: 100%;
@@ -76,7 +89,7 @@
             text-align: center;
             clear: both;
         }
-        
+
         .ad-label {
             font-size: 10px;
             color: var(--muted);
@@ -85,12 +98,12 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .ad-content {
             display: inline-block;
             text-align: center;
         }
-        
+
         /* Smartlink Button - Centered */
         .offer-btn {
             display: inline-block;
@@ -103,17 +116,18 @@
             transition: transform 0.3s, box-shadow 0.3s;
             margin: 5px 0;
         }
-        
+
         .offer-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4);
         }
-        
+
         @media (max-width: 768px) {
             .step-guide {
                 flex-direction: column;
                 align-items: center;
             }
+
             .offer-btn {
                 padding: 10px 22px;
                 font-size: 14px;
@@ -121,6 +135,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <nav>
@@ -138,14 +153,20 @@
         <div class="badge"><i class="fas fa-bolt"></i> 100% FREE · No Sign-up Required · Unlimited Conversions</div>
         <h1>Convert <span style="color: var(--accent);">Images to PDF</span><br>in Seconds, For Free</h1>
         <p>The easiest way to convert JPG, PNG, and other images to PDF. Plus other free PDF tools.</p>
-        
+
         <div class="quick-tools">
-            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=image-to-pdf'"><i class="fas fa-images"></i> Image to PDF</button>
-            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=merge-pdf'"><i class="fas fa-object-group"></i> Merge PDF</button>
-            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=compress-pdf'"><i class="fas fa-compress-alt"></i> Compress PDF</button>
-            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=word-to-pdf'"><i class="fas fa-file-word"></i> Word to PDF</button>
-            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=pdf-to-word'"><i class="fas fa-file-pdf"></i> PDF to Word</button>
-            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=watermark'"><i class="fas fa-tint"></i> Add Watermark</button>
+            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=image-to-pdf'"><i
+                    class="fas fa-images"></i> Image to PDF</button>
+            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=merge-pdf'"><i
+                    class="fas fa-object-group"></i> Merge PDF</button>
+            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=compress-pdf'"><i
+                    class="fas fa-compress-alt"></i> Compress PDF</button>
+            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=word-to-pdf'"><i
+                    class="fas fa-file-word"></i> Word to PDF</button>
+            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=pdf-to-word'"><i
+                    class="fas fa-file-pdf"></i> PDF to Word</button>
+            <button class="quick-tool-btn" onclick="location.href='/tools.html?tool=watermark'"><i
+                    class="fas fa-tint"></i> Add Watermark</button>
         </div>
     </section>
 
@@ -153,7 +174,8 @@
     <div class="ad-section">
         <div class="ad-label">Sponsored Offer</div>
         <div class="ad-content">
-            <a href="https://www.effectivecpmnetwork.com/x0riz1p9z?key=6fc126fc64ab47e409dafa247e9ba3ae" target="_blank" rel="nofollow noopener" class="offer-btn">
+            <a href="https://www.effectivecpmnetwork.com/x0riz1p9z?key=6fc126fc64ab47e409dafa247e9ba3ae" target="_blank"
+                rel="nofollow noopener" class="offer-btn">
                 <i class="fas fa-gem"></i> Check This Special Offer
             </a>
         </div>
@@ -162,9 +184,21 @@
     <div style="max-width: 900px; margin: 0 auto; padding: 2rem;">
         <h2 style="text-align: center; margin-bottom: 2rem;">How It Works</h2>
         <div class="step-guide">
-            <div class="step"><div class="step-number">1</div><h3>Upload Files</h3><p style="color: var(--muted);">Select images or PDFs</p></div>
-            <div class="step"><div class="step-number">2</div><h3>Convert</h3><p style="color: var(--muted);">Click convert button</p></div>
-            <div class="step"><div class="step-number">3</div><h3>Download</h3><p style="color: var(--muted);">Get your converted file</p></div>
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Upload Files</h3>
+                <p style="color: var(--muted);">Select images or PDFs</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Convert</h3>
+                <p style="color: var(--muted);">Click convert button</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Download</h3>
+                <p style="color: var(--muted);">Get your converted file</p>
+            </div>
         </div>
     </div>
 
@@ -172,7 +206,8 @@
     <div class="ad-section">
         <div class="ad-label">Advertisement</div>
         <div class="ad-content">
-            <script src="https://pl29645825.effectivecpmnetwork.com/89/de/76/89de76d36be4eda117ff5550c1c1b25a.js"></script>
+            <script
+                src="https://pl29645825.effectivecpmnetwork.com/89/de/76/89de76d36be4eda117ff5550c1c1b25a.js"></script>
         </div>
     </div>
 
@@ -217,11 +252,12 @@
             </div>
             <div class="action-bar">
                 <div class="action-info"><span id="file-count-label">No files selected</span></div>
-                <button class="convert-btn" id="convert-btn" disabled><i class="fas fa-magic"></i> Convert to PDF</button>
+                <button class="convert-btn" id="convert-btn" disabled><i class="fas fa-magic"></i> Convert to
+                    PDF</button>
             </div>
         </div>
     </div>
-   
+
     <section class="tools-section" id="all-tools" style="padding: 2rem;">
         <div class="section-title">All PDF Tools - 100% FREE</div>
         <div class="section-sub">Professional document conversion tools at your fingertips</div>
@@ -241,14 +277,15 @@
         <div class="ad-content">
             <script>
                 atOptions = {
-                    'key' : '2fd958d3801310cc94c83235bea4d986',
-                    'format' : 'iframe',
-                    'height' : 250,
-                    'width' : 300,
-                    'params' : {}
+                    'key': '2fd958d3801310cc94c83235bea4d986',
+                    'format': 'iframe',
+                    'height': 250,
+                    'width': 300,
+                    'params': {}
                 };
             </script>
             <script src="https://www.highperformanceformat.com/2fd958d3801310cc94c83235bea4d986/invoke.js"></script>
+
         </div>
     </div>
 
@@ -258,31 +295,36 @@
         <div class="ad-content">
             <script>
                 atOptions = {
-                    'key' : '7086ea02241c0622899e39d687f3412d',
-                    'format' : 'iframe',
-                    'height' : 50,
-                    'width' : 320,
-                    'params' : {}
+                    'key': '7086ea02241c0622899e39d687f3412d',
+                    'format': 'iframe',
+                    'height': 50,
+                    'width': 320,
+                    'params': {}
                 };
             </script>
             <script src="https://www.highperformanceformat.com/7086ea02241c0622899e39d687f3412d/invoke.js"></script>
+
         </div>
     </div>
 
     <!-- ✅ SECOND SMARTLINK OFFER - Centered with disclosure -->
     <div class="ad-section">
-        <div class="ad-label">Recommended Partner</div>
+
         <div class="ad-content">
-            <a href="https://www.effectivecpmnetwork.com/x0riz1p9z?key=6fc126fc64ab47e409dafa247e9ba3ae" target="_blank" rel="nofollow noopener" class="offer-btn">
-                <i class="fas fa-crown"></i> Get Professional PDF Software
-            </a>
-            <p style="font-size: 11px; color: var(--muted); margin-top: 10px;">We earn a commission if you purchase through this link</p>
+            <script
+                src="https://pl29645825.effectivecpmnetwork.com/89/de/76/89de76d36be4eda117ff5550c1c1b25a.js"></script>
+
         </div>
     </div>
 
     <footer>
-        <div><div class="logo" style="font-size:1.1rem;">Easy<span>PDF</span> Tools</div><div class="footer-copy">© 2025 EasyPDF Tools · 100% Free PDF Tools</div></div>
-        <div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/gdpr.html">GDPR</a><a href="/about.html">About</a><a href="/blog.html">Blog</a><a href="/contact.html">Contact</a></div>
+        <div>
+            <div class="logo" style="font-size:1.1rem;">Easy<span>PDF</span> Tools</div>
+            <div class="footer-copy">© 2025 EasyPDF Tools · 100% Free PDF Tools</div>
+        </div>
+        <div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a
+                href="/gdpr.html">GDPR</a><a href="/about.html">About</a><a href="/blog.html">Blog</a><a
+                href="/contact.html">Contact</a></div>
     </footer>
 
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg">Done!</span></div>
@@ -383,4 +425,5 @@
         window.removeFile = removeFile;
     </script>
 </body>
+
 </html>
