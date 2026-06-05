@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All PDF Tools - EasyPDF Tools</title>
+    <meta name="description" content="Free online PDF tools. Convert images to PDF, merge PDFs, compress PDFs, add watermarks, and more.">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%236c63ff'/%3E%3Crect x='20' y='20' width='60' height='60' rx='6' fill='white'/%3E%3Ctext x='50' y='68' font-family='Arial' font-size='36' font-weight='bold' fill='%236c63ff' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%236c63ff'/%3E%3Crect x='20' y='20' width='60' height='60' rx='6' fill='white'/%3E%3Ctext x='50' y='68' font-family='Arial' font-size='36' font-weight='bold' fill='%236c63ff' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .tools-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .tool-card {
+            background: var(--card);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        .tool-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .tool-card p {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .section-sub {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .tab-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            border: 1px solid var(--border2);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover, .tab-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .tool-interface {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        .back-to-tools {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-to-tools:hover {
+            color: var(--accent2);
+        }
+        /* No ad slots - removed */
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">Easy<span>PDF</span> Tools</div>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/tools.html">Tools</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/blog.html">Blog</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <div class="tools-container" id="tools-container">
+        <!-- Content will be loaded here by JavaScript -->
+    </div>
+
+    <footer>
+        <div>
+            <div class="logo" style="font-size:1.1rem;">Easy<span>PDF</span> Tools</div>
+            <div class="footer-copy">© 2025 EasyPDF Tools · 100% Free PDF Tools</div>
+        </div>
+        <div class="footer-links">
+            <a href="/privacy.html">Privacy</a>
+            <a href="/terms.html">Terms</a>
+            <a href="/gdpr.html">GDPR</a>
+            <a href="/about.html">About</a>
+            <a href="/blog.html">Blog</a>
+            <a href="/contact.html">Contact</a>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg">Done!</span></div>
+
+    <script>
+        // Tool configurations
+        const TOOLS = [
+            { id: 'image-to-pdf', name: 'Image to PDF', desc: 'Convert JPG, PNG, GIF to PDF', icon: 'fa-images', cat: 'convert', endpoint: '/api/image-to-pdf', accept: 'image/*', multiple: true, fieldName: 'files', hasOptions: true },
+            { id: 'merge-pdf', name: 'Merge PDF', desc: 'Combine multiple PDFs into one', icon: 'fa-object-group', cat: 'edit', endpoint: '/api/merge-pdf', accept: '.pdf', multiple: true, fieldName: 'files', hasOptions: false },
+            { id: 'compress-pdf', name: 'Compress PDF', desc: 'Reduce PDF file size', icon: 'fa-compress-alt', cat: 'optimize', endpoint: '/api/compress-pdf', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false },
+            { id: 'watermark', name: 'Add Watermark', desc: 'Add text watermark to PDF', icon: 'fa-tint', cat: 'edit', endpoint: '/api/watermark', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false },
+            { id: 'word-to-pdf', name: 'Word to PDF', desc: 'Convert DOCX to PDF', icon: 'fa-file-word', cat: 'convert', endpoint: '/api/word-to-pdf', accept: '.docx', multiple: false, fieldName: 'file', hasOptions: false },
+            { id: 'pdf-to-word', name: 'PDF to Word', desc: 'Convert PDF to DOCX', icon: 'fa-file-pdf', cat: 'convert', endpoint: '/api/pdf-to-word', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false }
+        ];
+
+        let currentTool = null;
+        let selectedFiles = [];
+        let currentCategory = 'all';
+
+        // Get tool from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const toolParam = urlParams.get('tool');
+        
+        if (toolParam) {
+            currentTool = TOOLS.find(t => t.id === toolParam);
+        }
+
+        function renderToolsGrid() {
+            const filtered = currentCategory === 'all' ? TOOLS : TOOLS.filter(t => t.cat === currentCategory);
+            
+            return `
+                <h1 class="section-title">All PDF Tools</h1>
+                <p class="section-sub">Choose a tool below to get started. All tools are 100% free with no limits.</p>
+                
+                <div class="tabs">
+                    <button class="tab-btn ${currentCategory === 'all' ? 'active' : ''}" data-category="all">All Tools</button>
+                    <button class="tab-btn ${currentCategory === 'convert' ? 'active' : ''}" data-category="convert">Convert</button>
+                    <button class="tab-btn ${currentCategory === 'edit' ? 'active' : ''}" data-category="edit">Edit</button>
+                    <button class="tab-btn ${currentCategory === 'security' ? 'active' : ''}" data-category="security">Security</button>
+                    <button class="tab-btn ${currentCategory === 'optimize' ? 'active' : ''}" data-category="optimize">Optimize</button>
+                </div>
+                
+                <div class="tools-grid" id="tools-grid">
+                    ${filtered.map(tool => `
+                        <div class="tool-card" onclick="selectTool('${tool.id}')">
+                            <div class="tool-icon"><i class="fas ${tool.icon}"></i></div>
+                            <h3>${tool.name}</h3>
+                            <p>${tool.desc}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderToolInterface() {
+            if (!currentTool) return '';
+            
+            return `
+                <a href="#" class="back-to-tools" onclick="showToolsGrid(); return false;">← Back to All Tools</a>
+                <div class="tool-interface">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="tool-icon" style="font-size: 2rem; margin: 0;"><i class="fas ${currentTool.icon}"></i></div>
+                        <h1 style="margin: 0;">${currentTool.name}</h1>
+                    </div>
+                    <p>${currentTool.desc}</p>
+                    
+                    <div class="drop-zone" id="drop-zone" style="margin: 1.5rem 0; padding: 3rem; text-align: center; border: 2px dashed var(--border); border-radius: var(--radius); cursor: pointer;">
+                        <div class="drop-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <h3>Drop your ${currentTool.accept === 'image/*' ? 'images' : 'files'} here</h3>
+                        <p>${currentTool.accept === 'image/*' ? 'Supports JPG, PNG, GIF, WebP, BMP' : currentTool.accept === '.pdf' ? 'Supports PDF files only' : 'Supports Word (.docx) files'}</p>
+                        <button class="upload-btn" id="browse-btn" type="button">Browse Files</button>
+                        <input type="file" id="file-input" style="display: none;" multiple="${currentTool.multiple}" accept="${currentTool.accept}">
+                        <div class="file-types">Max 50MB per file · ${currentTool.multiple ? 'Up to 10 files' : 'Single file'} · 100% FREE</div>
+                    </div>
+                    
+                    <div class="file-list" id="file-list"></div>
+                    
+                    ${currentTool.hasOptions ? `
+                    <div class="options-panel">
+                        <h4>PDF Layout Options</h4>
+                        <div class="options-grid">
+                            <div class="option-group"><label>Page Size</label><select id="page-size"><option value="a4">A4</option><option value="letter">Letter</option><option value="fit">Fit to Image</option></select></div>
+                            <div class="option-group"><label>Orientation</label><select id="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+                            <div class="option-group"><label>Quality</label><input type="range" min="1" max="100" value="90" id="quality-slider"><span class="range-val" id="quality-val">90%</span></div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="action-bar" style="margin-top: 1.5rem;">
+                        <div class="action-info"><span id="file-count-label">No files selected</span></div>
+                        <button class="convert-btn" id="convert-btn" disabled><i class="fas fa-magic"></i> Convert Now</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showToolsGrid() {
+            currentTool = null;
+            currentCategory = 'all';
+            // Remove tool parameter from URL
+            window.history.pushState({}, '', '/tools.html');
+            renderPage();
+        }
+
+        function selectTool(toolId) {
+            currentTool = TOOLS.find(t => t.id === toolId);
+            selectedFiles = [];
+            // Update URL with tool parameter
+            window.history.pushState({}, '', `/tools.html?tool=${toolId}`);
+            renderPage();
+            setupToolEventListeners();
+        }
+
+        function setupToolEventListeners() {
+            const dropZone = document.getElementById('drop-zone');
+            const browseBtn = document.getElementById('browse-btn');
+            const fileInput = document.getElementById('file-input');
+            const convertBtn = document.getElementById('convert-btn');
+            
+            if (browseBtn) browseBtn.onclick = () => fileInput?.click();
+            if (fileInput) fileInput.onchange = (e) => addFiles(Array.from(e.target.files));
+            if (dropZone) {
+                dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
+                dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
+                dropZone.ondrop = (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles(Array.from(e.dataTransfer.files)); };
+            }
+            if (convertBtn) convertBtn.onclick = startConversion;
+            
+            if (currentTool?.hasOptions) {
+                const slider = document.getElementById('quality-slider');
+                if (slider) slider.addEventListener('input', (e) => document.getElementById('quality-val').textContent = e.target.value + '%');
+            }
+        }
+
+        function addFiles(files) {
+            if (!currentTool) return;
+            const maxFiles = currentTool.multiple ? 10 : 1;
+            let filesToAdd = files;
+            if (selectedFiles.length + files.length > maxFiles) { showToast(`Maximum ${maxFiles} file(s) allowed`, 'warning'); filesToAdd = files.slice(0, maxFiles - selectedFiles.length); }
+            const validFiles = filesToAdd.filter(file => {
+                if (currentTool.accept === 'image/*') return file.type.startsWith('image/');
+                if (currentTool.accept === '.pdf') return file.name.toLowerCase().endsWith('.pdf');
+                if (currentTool.accept === '.docx') return file.name.toLowerCase().endsWith('.docx');
+                return false;
+            });
+            if (validFiles.length === 0) { showToast(`Invalid file type. Expected ${currentTool.accept}`, 'error'); return; }
+            selectedFiles.push(...validFiles); renderFileList(); document.getElementById('convert-btn').disabled = false;
+        }
+
+        function renderFileList() {
+            const listDiv = document.getElementById('file-list');
+            const countSpan = document.getElementById('file-count-label');
+            if (!listDiv) return;
+            if (selectedFiles.length === 0) { listDiv.innerHTML = ''; if (countSpan) countSpan.textContent = 'No files selected'; return; }
+            listDiv.innerHTML = selectedFiles.map((file, index) => `<div class="file-item"><span>📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span><button class="file-item-remove" onclick="removeFile(${index})"><i class="fas fa-times"></i></button></div>`).join('');
+            if (countSpan) countSpan.textContent = `${selectedFiles.length} file(s) selected`;
+        }
+
+        function removeFile(index) { selectedFiles.splice(index, 1); renderFileList(); document.getElementById('convert-btn').disabled = selectedFiles.length === 0; }
+        function clearFiles() { selectedFiles = []; renderFileList(); document.getElementById('convert-btn').disabled = true; const fileInput = document.getElementById('file-input'); if (fileInput) fileInput.value = ''; }
+
+        async function startConversion() {
+            if (!currentTool || selectedFiles.length === 0) { showToast('Please upload files first', 'error'); return; }
+            const convertBtn = document.getElementById('convert-btn');
+            if (convertBtn) { convertBtn.disabled = true; convertBtn.innerHTML = '<div class="loading"></div> Converting...'; }
+            try {
+                const formData = new FormData();
+                const fieldName = currentTool.fieldName;
+                if (currentTool.multiple) selectedFiles.forEach(file => formData.append(fieldName, file));
+                else formData.append(fieldName, selectedFiles[0]);
+                if (currentTool.hasOptions) {
+                    formData.append('pageSize', document.getElementById('page-size')?.value || 'a4');
+                    formData.append('orientation', document.getElementById('orientation')?.value || 'portrait');
+                    formData.append('quality', document.getElementById('quality-slider')?.value || '90');
+                }
+                if (currentTool.id === 'watermark') {
+                    const text = prompt('Enter watermark text:', 'CONFIDENTIAL');
+                    if (text) formData.append('text', text);
+                    else throw new Error('Watermark cancelled');
+                }
+                const response = await fetch(currentTool.endpoint, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Conversion failed');
+                const blob = await response.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${currentTool.id}_${Date.now()}.pdf`; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
+                showToast('✅ Conversion successful! File downloaded.', 'success');
+                clearFiles();
+            } catch (error) { showToast(`❌ Error: ${error.message}`, 'error'); }
+            finally { if (convertBtn) { convertBtn.disabled = false; convertBtn.innerHTML = '<i class="fas fa-magic"></i> Convert Now'; } }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast'); const toastMsg = document.getElementById('toast-msg');
+            if (!toast) return; if (toastMsg) toastMsg.textContent = message; toast.classList.add('show');
+            const colors = { error: '#ef4444', warning: '#f59e0b', success: '#10b981' };
+            toast.style.background = colors[type] || colors.success;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentCategory = btn.dataset.category;
+                    renderPage();
+                });
+            });
+        }
+
+        function renderPage() {
+            const container = document.getElementById('tools-container');
+            if (currentTool) {
+                container.innerHTML = renderToolInterface();
+                setupToolEventListeners();
+            } else {
+                container.innerHTML = renderToolsGrid();
+                setupTabs();
+            }
+        }
+
+        // Make functions global for onclick handlers
+        window.selectTool = selectTool;
+        window.showToolsGrid = showToolsGrid;
+        window.removeFile = removeFile;
+
+        // Initial render
+        renderPage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# robots.txt for PDFForge Pro
+User-agent: *
+Allow: /
+Allow: /tools.html
+Allow: /merge-pdf.html
+Allow: /compress-pdf.html
+Allow: /image-to-pdf.html
+Allow: /word-to-pdf.html
+Allow: /pdf-to-word.html
+Allow: /split-pdf.html
+Allow: /watermark.html
+Allow: /blog.html
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /gdpr.html
+
+Disallow: /uploads/
+Disallow: /output/
+Disallow: /css/
+Disallow: /js/
+
+# Crawl delay to prevent server overload
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: http://localhost:3000/sitemap.xml
+
+# Host
+Host: http://localhost:3000
