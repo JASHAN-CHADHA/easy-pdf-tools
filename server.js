@@ -387,8 +387,14 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'online', timestamp: new Date().toISOString() });
 });
 
+// Serve sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+    res.setHeader('Content-Type', 'application/xml');
+    res.sendFile('sitemap.xml', { root: './public' });
+});
+
 // ================= KEEP-ALIVE FUNCTION (Prevents Render from Sleeping) =================
-const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://easy-pdf-tools.onrender.com';
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://easy-pdf-tools7.onrender.com';
 
 function keepAlive() {
     if (process.env.RENDER_EXTERNAL_URL) {
