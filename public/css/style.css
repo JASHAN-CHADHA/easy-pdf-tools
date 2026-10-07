@@ -919,12 +919,15 @@ footer {
     font-size: 0.85rem;
     font-weight: 500;
     transform: translateX(120%);
-    transition: transform 0.3s;
+    transition: transform 0.3s, opacity 0.3s, visibility 0.3s;
     z-index: 999;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     max-width: 90%;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @media (max-width: 640px) {
@@ -939,6 +942,9 @@ footer {
 
 .toast.show {
     transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 @media (max-width: 640px) {
@@ -1126,7 +1132,7 @@ footer {
     }
 }
 
-/* Large Desktops (1441px and above) */
+/* Large Desktops (1441px to 1919px) */
 @media (min-width: 1441px) {
     .main-layout {
         max-width: 1400px;
@@ -1134,6 +1140,21 @@ footer {
     
     .tools-grid {
         grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Ultra Large Desktops & LEDs (1920px and above) */
+@media (min-width: 1920px) {
+    .main-layout {
+        max-width: 1800px;
+    }
+    
+    .tools-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
+    html {
+        font-size: 18px; /* Slightly larger text on very large screens */
     }
 }
 
