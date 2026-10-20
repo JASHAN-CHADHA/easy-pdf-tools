@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const mammoth = require('mammoth');
 const pdfParse = require('pdf-parse');
 const https = require('https');
+const { execFile } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -73,6 +74,47 @@ function escapeHtml(text) {
         .replace(/'/g, '&#39;');
 }
 
+// Locate Ghostscript binary
+function getGhostscriptPath() {
+    if (process.env.GHOSTSCRIPT_PATH && fs.existsSync(process.env.GHOSTSCRIPT_PATH)) {
+        return process.env.GHOSTSCRIPT_PATH;
+    }
+    const bundledWin = path.join(__dirname, 'node_modules', 'compress-pdf', 'bin', 'gs', 'bin', 'gswin64c.exe');
+    if (process.platform === 'win32' && fs.existsSync(bundledWin)) {
+        return bundledWin;
+    }
+    const bundledWinAlt = path.join(__dirname, 'node_modules', 'compress-pdf', 'bin', 'gs', 'gswin64c.exe');
+    if (process.platform === 'win32' && fs.existsSync(bundledWinAlt)) {
+        return bundledWinAlt;
+    }
+    const bundledLinux = path.join(__dirname, 'node_modules', 'compress-pdf', 'bin', 'gs', 'bin', 'gs');
+    if (fs.existsSync(bundledLinux)) {
+        return bundledLinux;
+    }
+    return process.platform === 'win32' ? 'gswin64c' : 'gs';
+}
+
+function compressPdfWithGhostscript(inputPath, outputPath, setting) {
+    setting = setting || '/ebook';
+    return new Promise((resolve, reject) => {
+        const gsPath = getGhostscriptPath();
+        const args = [
+            '-sDEVICE=pdfwrite',
+            '-dCompatibilityLevel=1.4',
+            '-dPDFSETTINGS=' + setting,
+            '-dNOPAUSE',
+            '-dQUIET',
+            '-dBATCH',
+            '-sOutputFile=' + outputPath,
+            inputPath
+        ];
+        execFile(gsPath, args, { maxBuffer: 1024 * 1024 * 50 }, (error) => {
+            if (error) return reject(error);
+            resolve(outputPath);
+        });
+    });
+}
+
 // ================= API ENDPOINTS =================
 
 // 1. MERGE PDF
@@ -89,10 +131,12 @@ app.post('/api/merge-pdf', upload.array('files', 10), async (req, res) => {
         const mergedBytes = await mergedPdf.save();
         const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
         fs.writeFileSync(outputPath, mergedBytes);
-        req.files.forEach(file => fs.unlinkSync(file.path));
+        
+        req.files.forEach(file => { try { fs.unlinkSync(file.path); } catch(e) {} });
         sendFileAsPDF(res, outputPath, 'merged.pdf');
     } catch (error) {
         console.error('Merge error:', error);
+        if (req.files) req.files.forEach(file => { try { fs.unlinkSync(file.path); } catch(e) {} });
         res.status(500).json({ error: error.message });
     }
 });
@@ -165,10 +209,12 @@ app.post('/api/image-to-pdf', upload.array('files', 20), async (req, res) => {
         const pdfBytes = await pdfDoc.save();
         const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
         fs.writeFileSync(outputPath, pdfBytes);
-        req.files.forEach(file => fs.unlinkSync(file.path));
+        
+        req.files.forEach(file => { try { fs.unlinkSync(file.path); } catch(e) {} });
         sendFileAsPDF(res, outputPath, 'converted.pdf');
     } catch (error) {
         console.error('Image to PDF error:', error);
+        if (req.files) req.files.forEach(file => { try { fs.unlinkSync(file.path); } catch(e) {} });
         res.status(500).json({ error: error.message });
     }
 });
@@ -176,17 +222,59 @@ app.post('/api/image-to-pdf', upload.array('files', 20), async (req, res) => {
 // 3. COMPRESS PDF
 app.post('/api/compress-pdf', upload.single('file'), async (req, res) => {
     console.log('📦 Compress PDF - File:', req.file?.originalname);
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    
+    const inputPath = req.file.path;
+    const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
+    
     try {
-        const pdfBytes = fs.readFileSync(req.file.path);
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const compressedBytes = await pdfDoc.save();
-        const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
-        fs.writeFileSync(outputPath, compressedBytes);
-        fs.unlinkSync(req.file.path);
-        sendFileAsPDF(res, outputPath, 'compressed.pdf');
+        const originalSize = fs.statSync(inputPath).size;
+        const requestedLevel = req.body.level || 'recommended';
+        
+        let gsSetting = '/ebook';
+        if (requestedLevel === 'extreme') gsSetting = '/screen';
+        else if (requestedLevel === 'low') gsSetting = '/printer';
+        
+        let compressedSuccessfully = false;
+        
+        // 1. Ghostscript compression (downsamples images, optimizes fonts & streams)
+        try {
+            await compressPdfWithGhostscript(inputPath, outputPath, gsSetting);
+            if (fs.existsSync(outputPath)) {
+                const newSize = fs.statSync(outputPath).size;
+                console.log(`Ghostscript compressed: ${originalSize} -> ${newSize} bytes (${Math.round((1 - newSize/originalSize) * 100)}% reduction)`);
+                // Only consider successful if it actually reduced the size and is not empty
+                if (newSize > 0 && newSize < originalSize) {
+                    compressedSuccessfully = true;
+                }
+            }
+        } catch (gsError) {
+            console.warn('Ghostscript compression unavailable or failed, falling back to pdf-lib:', gsError.message);
+        }
+        
+        // 2. Fallback: pdf-lib stream & object stream optimization
+        if (!compressedSuccessfully) {
+            const pdfBytes = fs.readFileSync(inputPath);
+            const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+            const optimizedBytes = await pdfDoc.save({ useObjectStreams: true });
+            
+            if (optimizedBytes.length < originalSize) {
+                fs.writeFileSync(outputPath, optimizedBytes);
+                console.log(`pdf-lib optimized: ${originalSize} -> ${optimizedBytes.length} bytes`);
+            } else {
+                // If file is already compact, output original bytes
+                fs.writeFileSync(outputPath, pdfBytes);
+                console.log('File is already at optimal compression');
+            }
+        }
+        
+        try { fs.unlinkSync(inputPath); } catch(e) {}
+        sendFileAsPDF(res, outputPath, req.file.originalname.replace(/\.pdf$/i, '_compressed.pdf'));
     } catch (error) {
         console.error('Compress error:', error);
-        res.status(500).json({ error: error.message });
+        try { fs.unlinkSync(inputPath); } catch(e) {}
+        try { fs.unlinkSync(outputPath); } catch(e) {}
+        res.status(500).json({ error: 'Failed to compress PDF: ' + error.message });
     }
 });
 
@@ -229,16 +317,18 @@ app.post('/api/watermark', upload.single('file'), async (req, res) => {
         const watermarkedBytes = await pdfDoc.save();
         const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
         fs.writeFileSync(outputPath, watermarkedBytes);
-        fs.unlinkSync(req.file.path);
+        
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
         sendFileAsPDF(res, outputPath, 'watermarked.pdf');
     } catch (error) {
         console.error('Watermark error:', error);
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
         res.status(500).json({ error: error.message });
     }
 });
 
 // 5. SPLIT PDF
-/*app.post('/api/split-pdf', upload.single('file'), async (req, res) => {
+app.post('/api/split-pdf', upload.single('file'), async (req, res) => {
     console.log('✂️ Split PDF - File:', req.file?.originalname);
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     
@@ -272,13 +362,15 @@ app.post('/api/watermark', upload.single('file'), async (req, res) => {
         const newBytes = await newPdf.save();
         const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
         fs.writeFileSync(outputPath, newBytes);
-        fs.unlinkSync(req.file.path);
+        
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
         sendFileAsPDF(res, outputPath, 'split.pdf');
     } catch (error) {
         console.error('Split error:', error);
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
         res.status(500).json({ error: error.message });
     }
-});*/
+});
 
 // 6. WORD TO PDF
 app.post('/api/word-to-pdf', upload.single('file'), async (req, res) => {
@@ -289,8 +381,9 @@ app.post('/api/word-to-pdf', upload.single('file'), async (req, res) => {
         const inputPath = req.file.path;
         const outputPath = path.join(outputDir, `${uuidv4()}.pdf`);
         
-        const result = await mammoth.extractRawText({ path: inputPath });
-        const extractedText = result.value;
+        // Use convertToHtml instead of extractRawText to preserve formatting
+        const result = await mammoth.convertToHtml({ path: inputPath });
+        const htmlContentFromWord = result.value || '<p>No readable content found in document.</p>';
         
         const htmlContent = `<!DOCTYPE html>
         <html>
@@ -299,18 +392,15 @@ app.post('/api/word-to-pdf', upload.single('file'), async (req, res) => {
             <title>${escapeHtml(req.file.originalname)}</title>
             <style>
                 body { font-family: 'Times New Roman', Times, serif; margin: 40px; line-height: 1.5; font-size: 12pt; }
-                .document-info { background: #f5f5f5; padding: 10px; margin-bottom: 20px; border-left: 4px solid #6c63ff; }
-                .content { white-space: pre-wrap; word-wrap: break-word; }
+                .content { word-wrap: break-word; }
+                .content img { max-width: 100%; height: auto; }
+                .content table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                .content th, .content td { border: 1px solid #ddd; padding: 8px; }
+                .content h1, .content h2, .content h3 { color: #333; }
             </style>
         </head>
         <body>
-            <div class="document-info">
-                <strong>Document:</strong> ${escapeHtml(req.file.originalname)}<br>
-                <strong>Converted:</strong> ${new Date().toLocaleString()}<br>
-                <strong>File Size:</strong> ${(req.file.size / 1024).toFixed(2)} KB
-            </div>
-            <hr>
-            <div class="content">${escapeHtml(extractedText)}</div>
+            <div class="content">${htmlContentFromWord}</div>
         </body>
         </html>`;
         
@@ -319,20 +409,13 @@ app.post('/api/word-to-pdf', upload.single('file'), async (req, res) => {
         const pdfBuffer = await htmlPdf.generatePdf({ content: htmlContent }, options);
         
         fs.writeFileSync(outputPath, pdfBuffer);
-        fs.unlinkSync(inputPath);
+        try { fs.unlinkSync(inputPath); } catch(e) {}
+        
         sendFileAsPDF(res, outputPath, `${req.file.originalname.replace('.docx', '.pdf')}`);
     } catch (error) {
         console.error('Word to PDF error:', error);
-        const fallbackPath = path.join(outputDir, `${uuidv4()}.pdf`);
-        const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([595, 842]);
-        const { width, height } = page.getSize();
-        page.drawText(`Document: ${req.file.originalname}`, { x: 50, y: height - 50, size: 14 });
-        page.drawText(`Error: ${error.message}`, { x: 50, y: height - 100, size: 10, color: rgb(1, 0, 0) });
-        const pdfBytes = await pdfDoc.save();
-        fs.writeFileSync(fallbackPath, pdfBytes);
-        fs.unlinkSync(req.file.path);
-        sendFileAsPDF(res, fallbackPath, `${req.file.originalname.replace('.docx', '.pdf')}`);
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
+        res.status(500).json({ error: 'Failed to convert Word to PDF: ' + error.message });
     }
 });
 
@@ -345,40 +428,36 @@ app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
         const dataBuffer = fs.readFileSync(req.file.path);
         const data = await pdfParse(dataBuffer);
         
-        let output = `PDF Document Analysis\n`;
-        output += `${'='.repeat(60)}\n`;
-        output += `File Name: ${req.file.originalname}\n`;
-        output += `Total Pages: ${data.numpages}\n`;
-        output += `File Size: ${(req.file.size / 1024).toFixed(2)} KB\n`;
-        output += `Processed: ${new Date().toLocaleString()}\n`;
-        output += `${'='.repeat(60)}\n\n`;
-        output += `EXTRACTED TEXT:\n`;
-        output += `${'='.repeat(60)}\n\n`;
-        output += data.text || 'No text content found. The PDF might be scanned.';
+        const extractedText = data.text || 'No text content found. The PDF might be scanned.';
         
-        const outputPath = path.join(outputDir, `${uuidv4()}.txt`);
-        fs.writeFileSync(outputPath, output);
-        fs.unlinkSync(req.file.path);
+        const { Document, Packer, Paragraph, TextRun } = require('docx');
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: extractedText.split('\n').map(line => 
+                    new Paragraph({
+                        children: [new TextRun(line)]
+                    })
+                )
+            }]
+        });
         
-        res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Content-Disposition', `attachment; filename=${req.file.originalname.replace('.pdf', '.txt')}`);
+        const buffer = await Packer.toBuffer(doc);
+        const outputPath = path.join(outputDir, `${uuidv4()}.docx`);
+        fs.writeFileSync(outputPath, buffer);
+        
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${req.file.originalname.replace('.pdf', '.docx')}"`);
+        
         const fileStream = fs.createReadStream(outputPath);
         fileStream.pipe(res);
         fileStream.on('end', () => { try { fs.unlinkSync(outputPath); } catch(e) {} });
     } catch (error) {
         console.error('PDF to Word error:', error);
-        let fallbackOutput = `PDF Document Analysis\n`;
-        fallbackOutput += `${'='.repeat(60)}\n`;
-        fallbackOutput += `File Name: ${req.file.originalname}\n`;
-        fallbackOutput += `Error: Could not extract text.\n`;
-        const fallbackPath = path.join(outputDir, `${uuidv4()}.txt`);
-        fs.writeFileSync(fallbackPath, fallbackOutput);
-        fs.unlinkSync(req.file.path);
-        res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Content-Disposition', `attachment; filename=${req.file.originalname.replace('.pdf', '.txt')}`);
-        const fileStream = fs.createReadStream(fallbackPath);
-        fileStream.pipe(res);
-        fileStream.on('end', () => { try { fs.unlinkSync(fallbackPath); } catch(e) {} });
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
+        res.status(500).json({ error: 'Failed to extract text from PDF.' });
     }
 });
 

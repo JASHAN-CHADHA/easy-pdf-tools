@@ -6,7 +6,7 @@ const TOOLS = [
     { id: 'image-to-pdf', name: 'Image to PDF', desc: 'Convert JPG, PNG to PDF', icon: 'fa-images', cat: 'convert', endpoint: '/api/image-to-pdf', accept: 'image/*', multiple: true, fieldName: 'files' },
     { id: 'compress-pdf', name: 'Compress PDF', desc: 'Reduce PDF file size', icon: 'fa-compress-alt', cat: 'optimize', endpoint: '/api/compress-pdf', accept: '.pdf', multiple: false, fieldName: 'file' },
     { id: 'watermark', name: 'Add Watermark', desc: 'Add text watermark to PDF', icon: 'fa-tint', cat: 'edit', endpoint: '/api/watermark', accept: '.pdf', multiple: false, fieldName: 'file' },
-    // split-pdf REMOVED
+    { id: 'split-pdf', name: 'Split PDF', desc: 'Extract pages from PDF', icon: 'fa-cut', cat: 'edit', endpoint: '/api/split-pdf', accept: '.pdf', multiple: false, fieldName: 'file' },
     { id: 'word-to-pdf', name: 'Word to PDF', desc: 'Convert DOCX to PDF', icon: 'fa-file-word', cat: 'convert', endpoint: '/api/word-to-pdf', accept: '.docx', multiple: false, fieldName: 'file' },
     { id: 'pdf-to-word', name: 'PDF to Word', desc: 'Convert PDF to DOCX', icon: 'fa-file-pdf', cat: 'convert', endpoint: '/api/pdf-to-word', accept: '.pdf', multiple: false, fieldName: 'file' },
 ];
@@ -349,6 +349,72 @@ function showSplitModalDialog(totalPages) {
     });
 }
 
+// Show Compress PDF Modal
+function showCompressModalDialog() {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'watermark-modal';
+        modal.innerHTML = `
+            <div class="watermark-modal-card">
+                <div style="width: 60px; height: 60px; background: rgba(108,99,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-compress-alt" style="font-size: 28px; color: var(--accent);"></i>
+                </div>
+                <h3>Compress PDF</h3>
+                <p>Choose your desired compression level:</p>
+                
+                <div style="text-align: left; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.8rem;">
+                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+                        <input type="radio" name="compressLevel" value="recommended" checked>
+                        <div>
+                            <strong>Recommended (Balanced)</strong>
+                            <div style="font-size: 0.8rem; color: var(--muted);">Good quality & size reduction (~70-90% smaller)</div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+                        <input type="radio" name="compressLevel" value="extreme">
+                        <div>
+                            <strong>Extreme Compression</strong>
+                            <div style="font-size: 0.8rem; color: var(--muted);">Maximum size reduction, 72 DPI</div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+                        <input type="radio" name="compressLevel" value="low">
+                        <div>
+                            <strong>Low Compression</strong>
+                            <div style="font-size: 0.8rem; color: var(--muted);">High print quality, light compression</div>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="watermark-buttons">
+                    <button class="watermark-cancel" id="compressCancel">Cancel</button>
+                    <button class="watermark-confirm" id="compressConfirm">Compress PDF</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        const confirmBtn = modal.querySelector('#compressConfirm');
+        const cancelBtn = modal.querySelector('#compressCancel');
+        
+        confirmBtn.onclick = () => {
+            const selected = modal.querySelector('input[name="compressLevel"]:checked')?.value || 'recommended';
+            modal.remove();
+            resolve(selected);
+        };
+        cancelBtn.onclick = () => {
+            modal.remove();
+            resolve(null);
+        };
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                resolve(null);
+            }
+        };
+    });
+}
+
 // Start Conversion
 async function startConversion() {
     if (!currentTool || selectedFiles.length === 0) {
@@ -369,6 +435,21 @@ async function startConversion() {
             selectedFiles.forEach(file => formData.append(fieldName, file));
         } else {
             formData.append(fieldName, selectedFiles[0]);
+        }
+        
+        // Compress PDF with custom modal
+        if (currentTool.id === 'compress-pdf') {
+            const level = await showCompressModalDialog();
+            if (level) {
+                formData.append('level', level);
+            } else {
+                showToast('Compression cancelled', 'warning');
+                if (convertBtn) {
+                    convertBtn.disabled = false;
+                    convertBtn.innerHTML = '<i class="fas fa-magic"></i> Convert Now';
+                }
+                return;
+            }
         }
         
         // Watermark with custom modal

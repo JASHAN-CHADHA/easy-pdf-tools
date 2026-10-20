@@ -143,7 +143,8 @@
         const TOOLS = [
             { id: 'image-to-pdf', name: 'Image to PDF', desc: 'Convert JPG, PNG, GIF to PDF', icon: 'fa-images', cat: 'convert', endpoint: '/api/image-to-pdf', accept: 'image/*', multiple: true, fieldName: 'files', hasOptions: true },
             { id: 'merge-pdf', name: 'Merge PDF', desc: 'Combine multiple PDFs into one', icon: 'fa-object-group', cat: 'edit', endpoint: '/api/merge-pdf', accept: '.pdf', multiple: true, fieldName: 'files', hasOptions: false },
-            { id: 'compress-pdf', name: 'Compress PDF', desc: 'Reduce PDF file size', icon: 'fa-compress-alt', cat: 'optimize', endpoint: '/api/compress-pdf', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false },
+            { id: 'compress-pdf', name: 'Compress PDF', desc: 'Reduce PDF file size', icon: 'fa-compress-alt', cat: 'optimize', endpoint: '/api/compress-pdf', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: true },
+            { id: 'split-pdf', name: 'Split PDF', desc: 'Extract pages from PDF', icon: 'fa-cut', cat: 'edit', endpoint: '/api/split-pdf', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false },
             { id: 'watermark', name: 'Add Watermark', desc: 'Add text watermark to PDF', icon: 'fa-tint', cat: 'edit', endpoint: '/api/watermark', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false },
             { id: 'word-to-pdf', name: 'Word to PDF', desc: 'Convert DOCX to PDF', icon: 'fa-file-word', cat: 'convert', endpoint: '/api/word-to-pdf', accept: '.docx', multiple: false, fieldName: 'file', hasOptions: false },
             { id: 'pdf-to-word', name: 'PDF to Word', desc: 'Convert PDF to DOCX', icon: 'fa-file-pdf', cat: 'convert', endpoint: '/api/pdf-to-word', accept: '.pdf', multiple: false, fieldName: 'file', hasOptions: false }
@@ -211,7 +212,21 @@
                     
                     <div class="file-list" id="file-list"></div>
                     
-                    ${currentTool.hasOptions ? `
+                    ${currentTool.id === 'compress-pdf' ? `
+                    <div class="options-panel">
+                        <h4>Compression Level</h4>
+                        <div class="options-grid">
+                            <div class="option-group">
+                                <label>Compression Mode</label>
+                                <select id="compress-level">
+                                    <option value="recommended" selected>Recommended (Good Quality & Compression)</option>
+                                    <option value="extreme">Extreme (Smallest File Size, 72 DPI)</option>
+                                    <option value="low">Less Compression (High Print Quality, 300 DPI)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    ` : currentTool.hasOptions ? `
                     <div class="options-panel">
                         <h4>PDF Layout Options</h4>
                         <div class="options-grid">
@@ -304,19 +319,37 @@
                 const fieldName = currentTool.fieldName;
                 if (currentTool.multiple) selectedFiles.forEach(file => formData.append(fieldName, file));
                 else formData.append(fieldName, selectedFiles[0]);
-                if (currentTool.hasOptions) {
+                if (currentTool.id === 'image-to-pdf') {
                     formData.append('pageSize', document.getElementById('page-size')?.value || 'a4');
                     formData.append('orientation', document.getElementById('orientation')?.value || 'portrait');
                     formData.append('quality', document.getElementById('quality-slider')?.value || '90');
+                }
+                if (currentTool.id === 'compress-pdf') {
+                    formData.append('level', document.getElementById('compress-level')?.value || 'recommended');
                 }
                 if (currentTool.id === 'watermark') {
                     const text = prompt('Enter watermark text:', 'CONFIDENTIAL');
                     if (text) formData.append('text', text);
                     else throw new Error('Watermark cancelled');
                 }
+                if (currentTool.id === 'split-pdf') {
+                    const pages = prompt('Enter pages to extract (e.g., 1-5, 3, 7-9):', '1');
+                    if (pages) formData.append('pages', pages);
+                    else throw new Error('Split cancelled');
+                }
                 const response = await fetch(currentTool.endpoint, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error('Conversion failed');
-                const blob = await response.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${currentTool.id}_${Date.now()}.pdf`; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                let ext = '.pdf';
+                if (currentTool.id === 'pdf-to-word') ext = '.docx';
+                a.download = `${currentTool.id}_${Date.now()}${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
                 showToast('✅ Conversion successful! File downloaded.', 'success');
                 clearFiles();
             } catch (error) { showToast(`❌ Error: ${error.message}`, 'error'); }
